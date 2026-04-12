@@ -3,7 +3,7 @@ export interface User {
   username: string
   email: string
   studentId: string
-  role: 'MEMBER' | 'ADMIN'
+  role: 'MEMBER' | 'ADMIN' | 'CHAIRMAN' | 'CHAIRLADY' | 'TREASURER' | 'SECRETARY'
   createdAt: Date
 }
 
