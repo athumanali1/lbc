@@ -4,6 +4,8 @@ import { getCurrentAdmin } from '@/lib/admin'
 import { hashPassword } from '@/lib/auth'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const resetSchema = z.object({
   userId: z.string(),
   newPassword: z.string().min(6),
