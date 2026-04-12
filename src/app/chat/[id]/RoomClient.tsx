@@ -177,8 +177,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
     <Card className="backdrop-blur-xl bg-white/60 dark:bg-slate-800/60 border border-white/20 shadow-xl">
       <CardHeader className="pb-3">
         <CardTitle>Messages</CardTitle>
-      </CardHeaderconst canDelete = mine || meRole === 'ADMIN'
-                  >
+      </CardHeader>
       <CardContent className="p-0">
         {error ? <div className="text-sm text-red-600 dark:text-red-400">{error}</div> : null}
 
@@ -191,19 +190,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               Retry
             </Button>
           </div>
-        ) : null}"mt-1 flex items-center justify-end gap-2">
-                          canDelete ? (
-                            <button
-                              type="button"
-                              onClick={() => deleteMessage(.d)}
-                              className={mihover:white undelne underline-offse-200 hover:text-slate-7dark:hover:t-slae200 underline undeline-offset-2'}
-                            >
-                              Delete
-                            </button>
-                          ) : null}
-                          <div className={mne ? 'text-[10px] text-wite/80' : 'text-[10px] text-slate-500 dark:text-slae-400
-  
-                          </div>
+        ) : null}
+
         <div className="px-6 pb-6">
           <div className="rounded-2xl border border-white/20 shadow-inner overflow-hidden">
             <div
@@ -219,6 +207,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               <div className="flex-1 overflow-y-auto px-3 py-4 space-y-2">
                 {messages.map((m) => {
                   const mine = !!meId && m.user.id === meId
+                  const canDelete = mine || meRole === 'ADMIN'
                   return (
                     <div key={m.id} className={mine ? 'flex justify-end' : 'flex justify-start'}>
                       <div
@@ -232,8 +221,19 @@ export default function RoomClient({ roomId }: { roomId: string }) {
                           <div className="text-[11px] font-semibold opacity-80 mb-0.5">{m.user.username}</div>
                         ) : null}
                         <div className="text-sm whitespace-pre-wrap break-words">{m.content}</div>
-                        <div className={mine ? 'text-[10px] mt-1 text-white/80 text-right' : 'text-[10px] mt-1 text-slate-500 dark:text-slate-400 text-right'}>
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className="mt-1 flex items-center justify-end gap-2">
+                          <div className={mine ? 'text-[10px] text-white/80' : 'text-[10px] text-slate-500 dark:text-slate-400'}>
+                            {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          {canDelete ? (
+                            <button
+                              type="button"
+                              onClick={() => deleteMessage(m.id)}
+                              className="text-[10px] underline underline-offset-2 hover:text-red-600 dark:hover:text-red-400"
+                            >
+                              Delete
+                            </button>
+                          ) : null}
                         </div>
                       </div>
                     </div>
