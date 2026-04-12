@@ -1,0 +1,253 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  email       String   @unique
+  passwordHash String  @map("password_hash")
+  studentId   String   @unique @map("student_id")
+  qrCodeData  String?  @map("qr_code_data")
+  avatarUrl   String?  @map("avatar_url")
+  gender      Gender?
+  class       String?  @map("class")
+  role        Role     @default(MEMBER)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  folders     Folder[]
+  files       File[]
+  sessions    Session[]
+  posts       Post[]
+  postLikes   PostLike[]
+  postComments PostComment[]
+  postShares  PostShare[]
+  createdChatRooms   ChatRoom[] @relation("ChatRoomCreator")
+  chatMessages ChatMessage[]
+  chatMemberships ChatRoomMember[]
+
+  @@map("users")
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String?  @map("parent_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  parent    Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children  Folder[] @relation("FolderHierarchy")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files     File[]
+
+  @@map("folders")
+}
+
+model File {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String   @map("original_name")
+  fileType     String   @map("file_type")
+  fileSize     Int      @map("file_size")
+  filePath     String   @map("file_path")
+  folderId     String?  @map("folder_id")
+  userId       String   @map("user_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  folder       Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postMedia    PostMedia[]
+
+  @@map("files")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  authorId  String   @map("author_id")
+  title     String?
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  media     PostMedia[]
+  likes     PostLike[]
+  comments  PostComment[]
+  shares    PostShare[]
+
+  @@index([authorId])
+  @@map("posts")
+}
+
+model PostMedia {
+  id     String @id @default(cuid())
+  postId String @map("post_id")
+  fileId String @map("file_id")
+
+  // Relations
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  file   File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, fileId])
+  @@index([postId])
+  @@index([fileId])
+  @@map("post_media")
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@map("post_comments")
+}
+
+model PostShare {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@map("post_shares")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+  CHAIRMAN
+  CHAIRLADY
+  TREASURER
+  SECRETARY
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model ChatRoom {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPrivate   Boolean  @default(false)
+  maxMembers  Int      @default(100)
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  creator     User     @relation("ChatRoomCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  messages    ChatMessage[]
+  members     ChatRoomMember[]
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  type      MessageType @default(TEXT)
+  roomId    String   @map("room_id")
+  userId    String   @map("user_id")
+  replyToId String?  @map("reply_to_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  room      ChatRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replyTo   ChatMessage? @relation("MessageReply", fields: [replyToId], references: [id])
+  replies   ChatMessage[] @relation("MessageReply")
+
+  @@map("chat_messages")
+}
+
+model ChatRoomMember {
+  id       String   @id @default(cuid())
+  roomId   String   @map("room_id")
+  userId   String   @map("user_id")
+  role     ChatRole @default(MEMBER)
+  joinedAt DateTime @default(now()) @map("joined_at")
+  lastRead DateTime @default(now()) @map("last_read")
+
+  // Relations
+  room     ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@map("chat_room_members")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  AUDIO
+  FILE
+  VOICE
+  SYSTEM
+}
+
+enum ChatRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
