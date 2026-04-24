@@ -8,8 +8,10 @@ const globalForPrisma = globalThis as unknown as {
 // Use mock database for local development
 const useMockDb = process.env.NODE_ENV === 'development' || !process.env.DATABASE_URL?.includes('postgresql')
 
-export const prisma = useMockDb ? mockDb : (globalForPrisma.prisma ?? new PrismaClient())
+const prismaClient = globalForPrisma.prisma ?? new PrismaClient()
+
+export const prisma: PrismaClient = (useMockDb ? (mockDb as unknown) : prismaClient) as PrismaClient
 
 if (process.env.NODE_ENV !== 'production' && !useMockDb) {
-  globalForPrisma.prisma = prisma as PrismaClient
+  globalForPrisma.prisma = prismaClient
 }

@@ -79,6 +79,12 @@ export const mockDb = {
       users[index] = { ...users[index], ...data, updatedAt: new Date() }
       return users[index]
     },
+    delete: async ({ where }: { where: { id: string } }) => {
+      const index = users.findIndex((u) => u.id === where.id)
+      if (index === -1) throw new Error('User not found')
+      const [deleted] = users.splice(index, 1)
+      return deleted
+    },
   },
   session: {
     findUnique: async ({ where }: { where: { token?: string } }) => {
