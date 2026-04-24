@@ -16,8 +16,8 @@ export default function StudentQRCard({ studentId, qrCodeData }: StudentQRCardPr
   const [error, setError] = useState('')
 
   const baseUrl = useMemo(() => {
-    if (typeof window !== 'undefined') return window.location.origin
-    return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    // Force use IP address for QR codes so phones can access
+    return 'http://10.140.163.50:3000'
   }, [])
 
   const deepLink = useMemo(() => {

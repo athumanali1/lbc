@@ -27,8 +27,8 @@ export default function CreateUserForm() {
   const [qrImageDataUrl, setQrImageDataUrl] = useState<string>('')
 
   const baseUrl = useMemo(() => {
-    if (typeof window === 'undefined') return ''
-    return window.location.origin
+    // Force use IP address for QR codes so phones can access
+    return 'http://10.140.163.50:3000'
   }, [])
 
   const deepLink = useMemo(() => {
